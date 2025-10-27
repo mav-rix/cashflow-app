@@ -1,0 +1,202 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  currency      String    @default("AUD")
+  dateFormat    String    @default("dd/MM/yyyy") // dd/MM/yyyy or MM/dd/yyyy
+  locale        String    @default("en-AU") // for number formatting
+  statsPeriod   String    @default("monthly") // weekly, biweekly, monthly
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  accounts      Account[]
+  transactions  Transaction[]
+  budgets       Budget[]
+  categories    Category[]
+  goals         Goal[]
+  loans         Loan[]
+}
+
+// Account Types: checking, savings, credit_card, cash, investment
+model Account {
+  id           String        @id @default(cuid())
+  name         String
+  type         String
+  balance      Float         @default(0)
+  currency     String        @default("USD")
+  description  String?
+  color        String?
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+}
+
+// Transaction Types: income, expense, transfer
+model Transaction {
+  id          String   @id @default(cuid())
+  amount      Float
+  type        String
+  description String?
+  date        DateTime @default(now())
+  isRecurring Boolean  @default(false)
+  isDisabled  Boolean  @default(false)
+  recurrence  String?  // daily, weekly, monthly, yearly
+  notes       String?
+  
+  // Bonus/variable income fields
+  bonusAmount      Float?   // optional bonus amount (e.g., on-call pay)
+  includeBonusNext Boolean  @default(false) // toggle to include bonus in next occurrence
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
+  @@index([userId, date])
+  @@index([categoryId])
+}
+
+// Categories for organizing transactions
+model Category {
+  id           String        @id @default(cuid())
+  name         String
+  type         String        // income, expense
+  color        String?
+  icon         String?
+  isDefault    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  userId       String?
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  transactions Transaction[]
+  budgets      Budget[]
+  
+  @@unique([name, type])
+}
+
+// Budget tracking per category
+model Budget {
+  id          String   @id @default(cuid())
+  name        String
+  amount      Float
+  period      String   // monthly, yearly
+  startDate   DateTime
+  endDate     DateTime?
+  alertAt     Float?   // percentage to trigger alert (e.g., 80 for 80%)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
+  @@index([userId, startDate])
+}
+
+// Financial goals
+model Goal {
+  id            String   @id @default(cuid())
+  name          String
+  targetAmount  Float
+  currentAmount Float    @default(0)
+  deadline      DateTime?
+  description   String?
+  color         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Loans and Debts Management
+model Loan {
+  id                String    @id @default(cuid())
+  name              String    // e.g., "Car Loan", "Mortgage", "Student Loan"
+  type              String    // mortgage, auto, student, personal, credit_card, payday, bnpl, other
+  principal         Float     // original loan amount
+  currentBalance    Float     // remaining balance
+  interestRate      Float     // annual percentage rate (APR)
+  termMonths        Int       // total loan term in months
+  startDate         DateTime
+  endDate           DateTime? // calculated or actual payoff date
+  monthlyPayment    Float     // minimum payment amount
+  paymentDay        Int       // day of month payment is due (1-31)
+  lender            String?   // bank or lender name
+  accountNumber     String?   // loan account number
+  notes             String?
+  isActive          Boolean   @default(true)
+  isPaidOff         Boolean   @default(false)
+  color             String?
+  isDisabled        Boolean   @default(false)
+  
+  // BNPL and Payday loan specific fields
+  paymentFrequency  String?   // weekly, biweekly, monthly (for BNPL installments)
+  numberOfPayments  Int?      // total number of payments (for BNPL - e.g., 4 payments)
+  feeAmount         Float?    // late fees or service fees
+  allowSplitPayment Boolean   @default(false) // for payday loans - can split or pay in full
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  payments          LoanPayment[]
+  
+  @@index([userId, isActive])
+  @@index([userId, paymentDay])
+}
+
+// Track individual loan payments
+model LoanPayment {
+  id              String   @id @default(cuid())
+  dueDate         DateTime // when payment is due
+  paymentDate     DateTime? // when payment was actually made
+  amount          Float    // payment amount
+  principal       Float?   // portion applied to principal
+  interest        Float?   // portion applied to interest
+  status          String   @default("pending") // pending, paid, late, missed
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  loanId          String
+  loan            Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  
+  transactionId   String?  // link to transaction if payment was recorded
+  
+  @@index([loanId, dueDate])
+  @@index([status, dueDate])
+}
