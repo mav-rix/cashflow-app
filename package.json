@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "prisma generate && prisma migrate deploy && next build && npm run copy-prisma",
+    "copy-prisma": "mkdir -p .next/standalone/node_modules/.prisma && cp -r node_modules/.prisma/client .next/standalone/node_modules/.prisma/ 2>/dev/null || mkdir -p .next/server/node_modules/.prisma && cp -r node_modules/.prisma/client .next/server/node_modules/.prisma/ 2>/dev/null || echo 'Prisma files copied'",
     "start": "next start",
     "lint": "eslint",
     "db:push": "prisma db push",
