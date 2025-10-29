@@ -46,16 +46,18 @@ export async function POST(request: NextRequest) {
     )
   } catch (error: any) {
     console.error('Signup error:', error)
-    
+    console.error('Error details:', JSON.stringify(error, null, 2))
+
     if (error.name === 'ZodError') {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },
         { status: 400 }
       )
     }
-    
+
+    // Return more detailed error for debugging
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message || 'Unknown error' },
       { status: 500 }
     )
   }
