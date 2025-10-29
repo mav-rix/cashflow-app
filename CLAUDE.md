@@ -1,0 +1,1 @@
+- Do not implement new features that I didn't tell you to do. If you'd like to add something we haven't discussed, you must confirm the plan with me.
