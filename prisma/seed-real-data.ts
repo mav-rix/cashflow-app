@@ -316,6 +316,9 @@ async function main() {
   const weeklyExpenses = expenses.filter(e => e.recurrence === 'weekly').reduce((sum, e) => sum + e.amount, 0);
   const monthlyExpenses = expenses.filter(e => e.recurrence === 'monthly').reduce((sum, e) => sum + e.amount, 0);
 
+  // Calculate total weekly loan payments for display
+  const totalWeeklyLoanPayments = 192 + 25 + 25 + 25 + 91.28 + 59.54 + 74.80;
+
   console.log(`✅ Created ${transactionCount} recurring expense transactions`);
   console.log('\n🎉 Real financial data seeded successfully!');
   console.log('\n📝 Login credentials:');
