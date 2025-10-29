@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { usePreferences } from '@/components/PreferencesProvider'
+import { OnboardingTour } from '@/components/onboarding-tour'
 
 interface Stats {
   totalBalance: number
@@ -52,6 +53,7 @@ export default function Dashboard() {
   const router = useRouter()
   const { preferences, setPreferences } = usePreferences()
   const [loading, setLoading] = useState(true)
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
@@ -80,7 +82,38 @@ export default function Dashboard() {
     fetchCategories()
     fetchAccounts()
     fetchUpcoming()
+    checkOnboardingStatus()
   }, [preferences.statsPeriod])
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const res = await fetch('/api/user/onboarding')
+      if (res.ok) {
+        const data = await res.json()
+        setShowOnboarding(!data.onboardingCompleted)
+      }
+    } catch (error) {
+      console.error('Error checking onboarding status:', error)
+    }
+  }
+
+  const handleOnboardingComplete = async () => {
+    try {
+      await fetch('/api/user/onboarding', { method: 'POST' })
+      setShowOnboarding(false)
+    } catch (error) {
+      console.error('Error completing onboarding:', error)
+    }
+  }
+
+  const handleOnboardingSkip = async () => {
+    try {
+      await fetch('/api/user/onboarding', { method: 'POST' })
+      setShowOnboarding(false)
+    } catch (error) {
+      console.error('Error skipping onboarding:', error)
+    }
+  }
 
   const fetchUpcoming = async () => {
     try {
@@ -809,6 +842,14 @@ export default function Dashboard() {
               </form>
             </div>
           </div>
+        )}
+
+        {/* Onboarding Tour */}
+        {showOnboarding && (
+          <OnboardingTour
+            onComplete={handleOnboardingComplete}
+            onSkip={handleOnboardingSkip}
+          />
         )}
       </div>
     </div>

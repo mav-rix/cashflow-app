@@ -8,24 +8,24 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 // User Management
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  password      String
-  image         String?
-  currency      String    @default("AUD")
-  dateFormat    String    @default("dd/MM/yyyy") // dd/MM/yyyy or MM/dd/yyyy
-  locale        String    @default("en-AU") // for number formatting
-  statsPeriod   String    @default("monthly") // weekly, biweekly, monthly
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  id                  String    @id @default(cuid())
+  name                String?
+  email               String    @unique
+  emailVerified       DateTime?
+  password            String
+  image               String?
+  currency            String    @default("AUD")
+  dateFormat          String    @default("dd/MM/yyyy") // dd/MM/yyyy or MM/dd/yyyy
+  locale              String    @default("en-AU") // for number formatting
+  statsPeriod         String    @default("monthly") // weekly, biweekly, monthly
+  onboardingCompleted Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
   accounts      Account[]
   transactions  Transaction[]
   budgets       Budget[]
