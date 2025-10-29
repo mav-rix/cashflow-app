@@ -1,12 +1,7 @@
 {
   "functions": {
     "app/api/**/*.ts": {
-      "includeFiles": "node_modules/.prisma/client/**"
-    }
-  },
-  "build": {
-    "env": {
-      "PRISMA_SKIP_POSTINSTALL_GENERATE": "false"
+      "maxDuration": 10
     }
   }
 }
