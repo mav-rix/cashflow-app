@@ -1,7 +1,8 @@
 {
   "functions": {
     "app/api/**/*.ts": {
-      "maxDuration": 10
+      "maxDuration": 10,
+      "includeFiles": "{node_modules/.prisma/client/**,node_modules/@prisma/client/**,node_modules/@prisma/engines/**}"
     }
   }
 }
