@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { usePreferences } from '@/components/PreferencesProvider'
 import { OnboardingTour } from '@/components/onboarding-tour'
+import { SessionTimeoutWarning } from '@/components/session-timeout-warning'
+import { useSessionTimeout } from '@/hooks/useSessionTimeout'
 
 interface Stats {
   totalBalance: number
@@ -54,6 +56,10 @@ export default function Dashboard() {
   const { preferences, setPreferences } = usePreferences()
   const [loading, setLoading] = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const { showWarning, stayLoggedIn, logout } = useSessionTimeout({
+    timeoutMinutes: 15,
+    warningMinutes: 1,
+  })
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
@@ -849,6 +855,14 @@ export default function Dashboard() {
           <OnboardingTour
             onComplete={handleOnboardingComplete}
             onSkip={handleOnboardingSkip}
+          />
+        )}
+
+        {/* Session Timeout Warning */}
+        {showWarning && (
+          <SessionTimeoutWarning
+            onStayLoggedIn={stayLoggedIn}
+            onLogout={logout}
           />
         )}
       </div>

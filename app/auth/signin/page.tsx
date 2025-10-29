@@ -11,6 +11,7 @@ function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const registered = searchParams.get('registered')
+  const timeout = searchParams.get('timeout')
   
   const [formData, setFormData] = useState({
     email: '',
@@ -63,7 +64,13 @@ function SignInForm() {
               Account created successfully! Please sign in.
             </div>
           )}
-          
+
+          {timeout && (
+            <div className="bg-yellow-50 text-yellow-700 p-3 rounded-md text-sm mb-4">
+              Your session expired due to inactivity. Please sign in again.
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
