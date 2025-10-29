@@ -1,18 +1,12 @@
 import { PrismaClient } from '@prisma/client'
-import { Pool, neonConfig } from '@neondatabase/serverless'
-import { PrismaNeon } from '@prisma/adapter-neon'
-import ws from 'ws'
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Configure WebSocket for local development
-if (process.env.NODE_ENV !== 'production') {
-  neonConfig.webSocketConstructor = ws
-}
-
-// Create Prisma client with Neon adapter for serverless compatibility
+// Create Prisma client with PostgreSQL adapter for serverless compatibility
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL
   if (!connectionString) {
@@ -20,9 +14,9 @@ function createPrismaClient() {
   }
 
   const pool = new Pool({ connectionString })
-  const adapter = new PrismaNeon(pool as any)
+  const adapter = new PrismaPg(pool)
 
-  return new PrismaClient({ adapter })
+  return new PrismaClient({ adapter } as any)
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()
