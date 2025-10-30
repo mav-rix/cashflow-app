@@ -6,22 +6,27 @@ export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies()
     const sessionCookie = cookieStore.get('session')
-    
+
     if (!sessionCookie) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
-    
-    // Get all categories (default + user-created)
+
+    const userId = sessionCookie.value
+
+    // Get categories for the current user
     const categories = await prisma.category.findMany({
+      where: {
+        userId: userId
+      },
       orderBy: [
-        { isDefault: 'desc' },
+        { type: 'asc' },
         { name: 'asc' },
       ],
     })
-    
+
     return NextResponse.json({ categories })
   } catch (error: any) {
     console.error('Categories error:', error)
