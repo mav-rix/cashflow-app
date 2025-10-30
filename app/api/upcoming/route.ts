@@ -63,24 +63,33 @@ export async function GET(request: NextRequest) {
 
     // Helper function to calculate next due date based on recurrence
     const getNextDueDate = (lastDate: Date, recurrence: string): Date => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+
       const next = new Date(lastDate);
-      switch (recurrence) {
-        case 'daily':
-          next.setDate(next.getDate() + 1);
-          break;
-        case 'weekly':
-          next.setDate(next.getDate() + 7);
-          break;
-        case 'biweekly':
-          next.setDate(next.getDate() + 14);
-          break;
-        case 'monthly':
-          next.setMonth(next.getMonth() + 1);
-          break;
-        case 'yearly':
-          next.setFullYear(next.getFullYear() + 1);
-          break;
+      next.setHours(0, 0, 0, 0);
+
+      // Keep advancing the date until we find the next future occurrence
+      while (next < today) {
+        switch (recurrence) {
+          case 'daily':
+            next.setDate(next.getDate() + 1);
+            break;
+          case 'weekly':
+            next.setDate(next.getDate() + 7);
+            break;
+          case 'biweekly':
+            next.setDate(next.getDate() + 14);
+            break;
+          case 'monthly':
+            next.setMonth(next.getMonth() + 1);
+            break;
+          case 'yearly':
+            next.setFullYear(next.getFullYear() + 1);
+            break;
+        }
       }
+
       return next;
     };
 
